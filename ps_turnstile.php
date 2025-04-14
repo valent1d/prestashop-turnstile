@@ -30,10 +30,11 @@ class Ps_Turnstile extends Module
     {
         $this->name = 'ps_turnstile';
         $this->tab = 'front_office_features';
-        $this->version = '1.0.21';
+        $this->version = '1.0.22';
         $this->author = 'Digibleo';
         $this->need_instance = 0;
         $this->bootstrap = true;
+        $this->ps_versions_compliancy = ['min' => '1.7.0', 'max' => _PS_VERSION_];
 
         parent::__construct();
 
