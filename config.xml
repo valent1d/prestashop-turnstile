@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
     <name>ps_turnstile</name>
-    <displayName><![CDATA[Cloudflare Turnstile by Digibleo]]></displayName>
-    <version><![CDATA[1.0.22]]></version>
+    <displayName><![CDATA[Cloudflare Turnstile by VLTN]]></displayName>
+    <version><![CDATA[2.0.0]]></version>
     <description><![CDATA[Intégration du CAPTCHA de Cloudflare Turnstile dans le formulaire de contact, d'inscription et de connexion.]]></description>
-    <author><![CDATA[Digibleo]]></author>
+    <author><![CDATA[VLTN]]></author>
     <tab><![CDATA[front_office_features]]></tab>
     <is_configurable>1</is_configurable>
     <need_instance>0</need_instance>

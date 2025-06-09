@@ -44,7 +44,7 @@ Aucune action supplémentaire n'est requise !
 Si vous rencontrez des problèmes ou avez des questions :
 
 - 🐛 Signalez un bug dans les [issues GitHub](https://github.com/valent1d/prestashop-turnstile/issues)
-- 📧 Contactez-nous à hello@digibleo.com
+- 📧 Contactez-nous à hi@vltn.sh
 
 ## 🙏 Remerciements
 
@@ -53,4 +53,4 @@ Si vous rencontrez des problèmes ou avez des questions :
 
 ---
 
-Fait avec ❤️ par [Digibleo](https://digibleo.com)
+Fait avec ❤️ par [VLTN](https://vltn.sh)
