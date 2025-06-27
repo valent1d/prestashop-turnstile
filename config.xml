@@ -2,7 +2,7 @@
 <module>
     <name>ps_turnstile</name>
     <displayName><![CDATA[Cloudflare Turnstile by VLTN]]></displayName>
-    <version><![CDATA[2.0.0]]></version>
+    <version><![CDATA[2.0.1]]></version>
     <description><![CDATA[Intégration du CAPTCHA de Cloudflare Turnstile dans le formulaire de contact, d'inscription et de connexion.]]></description>
     <author><![CDATA[VLTN]]></author>
     <tab><![CDATA[front_office_features]]></tab>
