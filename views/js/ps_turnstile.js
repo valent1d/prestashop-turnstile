@@ -1,13 +1,13 @@
 /**
  * Cloudflare Turnstile Integration for PrestaShop
  * @author VLTN
- * @version 2.0.0
+ * @version 2.0.1
  */
 
 console.log("Turnstile JS is loaded.");
 
 document.addEventListener("DOMContentLoaded", () => {
-    const turnstilePaths = ['/contact-us', '/nous-contacter', '/connexion', '/login', '/inscription', '/register', '/registration'];
+    const turnstilePaths = ['/contact-us', '/nous-contacter', '/connexion', '/login', '/authentification', '/inscription', '/register', '/registration'];
     
     if (turnstilePaths.some(path => window.location.pathname.includes(path))) {
         const forms = {
@@ -86,13 +86,13 @@ const addTurnstileToForm = (form, formType) => {
 
     positionTurnstile();
     
-    // Ajout du champ caché pour la vérification
+    // Ajout du champ caché pour indiquer que JS est actif
     const turnstileLoadedInput = document.createElement('input');
     turnstileLoadedInput.type = 'hidden';
     turnstileLoadedInput.name = 'turnstile_loaded';
     turnstileLoadedInput.value = '1';
     form.appendChild(turnstileLoadedInput);
-
+    
     // Chargement du script Turnstile avec gestion du cache
     if (!document.querySelector('script[src="https://challenges.cloudflare.com/turnstile/v0/api.js"]')) {
         const script = document.createElement('script');
@@ -109,18 +109,7 @@ const addTurnstileToForm = (form, formType) => {
     // Validation du formulaire
     form.addEventListener('submit', (event) => {
         const turnstileResponse = form.querySelector('[name="cf-turnstile-response"]');
-        const csrfToken = form.querySelector('[name="turnstile_csrf_token"]');
         
-        // Supprimer les messages d'erreur précédents
-        const existingErrors = form.querySelectorAll('.alert-danger');
-        existingErrors.forEach(error => error.remove());
-        
-        if (!csrfToken?.value) {
-            event.preventDefault();
-            showError(form, 'Erreur de sécurité : Session invalide. Veuillez rafraîchir la page.');
-            return;
-        }
-
         if (!turnstileResponse?.value) {
             event.preventDefault();
             showError(form, 'Veuillez compléter le CAPTCHA avant de soumettre le formulaire.');

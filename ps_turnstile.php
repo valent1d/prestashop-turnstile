@@ -30,7 +30,7 @@ class Ps_Turnstile extends Module
     {
         $this->name = 'ps_turnstile';
         $this->tab = 'front_office_features';
-        $this->version = '2.0.0';
+        $this->version = '2.0.1';
         $this->author = 'VLTN';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -45,12 +45,10 @@ class Ps_Turnstile extends Module
     public function install()
     {
         return parent::install() &&
-            $this->registerHook('header') &&
-            $this->registerHook('actionFrontControllerAfterInit') &&
-            $this->registerHook('actionCustomerAccountAdd') &&
+            $this->registerHook('displayHeader') &&
+            $this->registerHook('actionFrontControllerInitAfter') &&
             Configuration::updateValue('TURNSTILE_SITE_KEY', '') &&
             Configuration::updateValue('TURNSTILE_SECRET_KEY', '') &&
-            $this->registerHook('displayCustomerAccountForm') &&
             Db::getInstance()->execute('CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'turnstile_attempts` (
                 `id_attempt` int(11) NOT NULL AUTO_INCREMENT,
                 `ip_address` varchar(45) NOT NULL,
@@ -72,10 +70,10 @@ class Ps_Turnstile extends Module
             Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.'turnstile_attempts`');
     }
 
-    public function hookHeader($params)
+    public function hookDisplayHeader($params)
     {
         $controller = $this->context->controller->php_self;
-        $allowed_controllers = ['contact', 'contact-us', 'authentication', 'registration'];
+        $allowed_controllers = ['contact', 'contact-us', 'authentication', 'authentification', 'registration', 'inscription', 'login'];
         
         if (in_array($controller, $allowed_controllers) || $this->context->controller instanceof RegistrationController) {
             $this->context->controller->addJS($this->_path . 'views/js/ps_turnstile.js');
@@ -89,16 +87,25 @@ class Ps_Turnstile extends Module
         }
     }
 
-    public function hookActionFrontControllerAfterInit($params)
+    public function hookActionFrontControllerInitAfter($params)
     {
         $controller = $this->context->controller->php_self;
-        $allowed_controllers = ['contact', 'contact-us', 'authentication', 'registration'];
+        $allowed_controllers = ['contact', 'contact-us', 'authentication', 'authentification', 'registration', 'inscription', 'login'];
         
         if (in_array($controller, $allowed_controllers) || $this->context->controller instanceof RegistrationController) {
             $form_action = '';
             if ($controller == 'contact' || $controller == 'contact-us') {
                 $form_action = 'submitMessage';
-            } elseif (($controller == 'authentication' && Tools::isSubmit('submitCreate')) || $controller == 'registration') {
+            } elseif (
+                (
+                    ($controller == 'authentication' || $controller == 'authentification' || $controller == 'login')
+                    && Tools::isSubmit('submitCreate')
+                )
+                || (
+                    ($controller == 'registration' || $controller == 'inscription')
+                    && Tools::isSubmit('submitCreate')
+                )
+            ) {
                 $form_action = 'submitCreate';
             }
 
@@ -106,21 +113,6 @@ class Ps_Turnstile extends Module
                 $this->validateTurnstile($form_action);
             }
         }
-    }
-
-    public function hookActionCustomerAccountAdd($params)
-    {
-        // Cette méthode sera appelée lors de la création d'un compte client
-        // Vous pouvez ajouter ici une validation supplémentaire si nécessaire
-    }
-
-    public function hookDisplayCustomerAccountForm($params)
-    {
-        $token = Tools::getToken(false);
-        $this->context->smarty->assign([
-            'turnstile_csrf_token' => $token
-        ]);
-        return $this->display(__FILE__, 'csrf_token.tpl');
     }
 
     private function checkRateLimit(string $form_type): bool
@@ -181,22 +173,16 @@ class Ps_Turnstile extends Module
                 throw new PrestaShopException($this->getErrorMessage('rate-limit-exceeded'));
             }
 
-            // Vérification du token CSRF
-            if (!Tools::getToken(false) || Tools::getToken(false) !== Tools::getValue('turnstile_csrf_token')) {
-                $this->logAttempt($redirect_action, false, 'csrf-invalid');
-                throw new PrestaShopException($this->getErrorMessage('csrf-invalid'));
-            }
-
             if (!Configuration::get('TURNSTILE_SITE_KEY') || !Configuration::get('TURNSTILE_SECRET_KEY')) {
                 $this->logAttempt($redirect_action, false, 'turnstile-not-configured');
                 throw new PrestaShopException($this->getErrorMessage('turnstile-not-configured'));
             }
 
-            $turnstile_response = $this->context->request->get('cf-turnstile-response');
+            $turnstile_response = Tools::getValue('cf-turnstile-response');
             $secret = Configuration::get('TURNSTILE_SECRET_KEY');
 
             // Vérifier si Turnstile est chargé (JavaScript activé)
-            $is_turnstile_loaded = $this->context->request->get('turnstile_loaded', false);
+            $is_turnstile_loaded = Tools::getValue('turnstile_loaded', false);
 
             if (!$is_turnstile_loaded) {
                 $this->logAttempt($redirect_action, false, 'javascript-disabled');
@@ -263,7 +249,10 @@ class Ps_Turnstile extends Module
         if ($action == 'submitMessage') {
             $this->context->controller->redirectWithNotifications($this->context->link->getPageLink('contact'));
         } elseif ($action == 'submitCreate') {
-            $this->context->controller->redirectWithNotifications($this->context->link->getPageLink('authentication', true, null, ['create_account' => '1']));
+            $target = in_array($this->context->controller->php_self, ['registration', 'inscription']) ? $this->context->controller->php_self : 'authentication';
+            $this->context->controller->redirectWithNotifications(
+                $this->context->link->getPageLink($target, true, null, ['create_account' => '1'])
+            );
         }
         exit;
     }
